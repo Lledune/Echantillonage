@@ -1,0 +1,173 @@
+---
+title: "LSTAT2200"
+author: "Lucien Ledune"
+date: '`r format(Sys.time(), "%B %d, %Y,%H:%M")`'
+output:
+  pdf_document: # options pour sorties pdf
+    toc: yes
+    toc_depth: '3'
+  html_document: # options pour sortie HTML
+    code_folding: hide #  Cache le code  
+    collapsed: yes # Cr?e un document unique 
+    fig_caption: yes # Figures encapsul?es ? 
+    fig_height: 5 # Hauteur par d?faut des figures
+    fig_width: 6 # Largeur par d?faut des figure
+    highlight: tango # style de mise en valeur du code
+    number_sections: yes # Ajout table des mati?res 
+    theme: united  # Style du document
+    toc: yes # Table des matiere ?
+    toc_depth: 3  # Profondeur table des mati?re
+    toc_float: yes # table des mati?re flottante
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(sampling)
+library(samplingbook) # Si chargement du package nécessaire : install.packages("samplingbook")
+library(datasets)
+library(pander)
+library(knitr)
+```
+
+#Introduction 
+
+Dans le cadre du cours d'échantillonage et sondage, nous allons réaliser un projet résumant la matière vue au cours. Ce travail sera divisé en plusieurs parties : 
+
+* Un descriptif de la problématique
+* La description des méthodes de sondages utilisées 
+* Les statistiques descriptives de nos différents sondages 
+* Une discussion sur les résultats
+* Une discussion sur les limites de notre approche et comment l'améliorer
+
+##Jeu de données 
+
+Pour ce travail nous utiliserons le jeu de données **Legoland** qui représente la consommation de poivrons des habitants de Legoland. Legoland se divise en trois provinces, et les principaux supermarchés vendant les poivrons sont eux aussi au nombre de trois. Les habitants se nourrissent de poivrons de trois différentes sortes : Rouje, jaune et vert. 
+
+Une ligne représente une transaction, que l'on peut associer à la consommation de poivrons d'un ménage au cours d'une journée. 
+
+Voici les différentes variables : 
+
+Province : La province dans laquelle la transaction a été effectuée. 
+
+Enseigne : Le supermarché dans lequel elle a été faite. 
+
+Paiement : Le type de paiement 
+
+Vert, jaune, rouge : La quantité de poivrons de chaque type achetée. 
+
+N_Personnes : Nombre de personnes au sein du ménage. 
+
+Il faut garder à l'esprit que même si nous avons la base de donnée pour ce projet, nous ne pouvons pas nous en servir directement puisque le but est d'échantilloner. Nous disposons cependant de certaines informations comme les effectifs des provinces et des enseignes. 
+
+##Contraintes 
+
+* Chaque province de Legoland doit être représentée dans l'échantillon, ainsi que chaque enseigne dans chaque province. 
+* L'obtention des informations à un coût : 1$, 1.2$ et 1.5$ pour Grancub, P'ti rond et Toupla. 
+
+* Le budget pour chaque échantillon est de 25000$.
+
+##Questions de l'étude 
+
+Nous allons tenter de répondre à 4 questions principales au cours de ce travail : 
+
+* Quel type de poivron est le plus consommé à Legoland ? 
+* La consommation de poivrons est-elle homogène au sein des trois provinces ? 
+* Le chiffre d'affaire diffère-t-il au sein des chaines de supermarchés ? 
+* Est-ce que l'installation de terminaux pour le paiement électronique serait rentable ? 
+
+#Quel type de poivron est le plus consommé à Legoland ? 
+
+##Échantillonage et calculs
+
+Puisque dans cette question nous ne nous intéressons pas aux différents groupes mais bien à la totalité de la population, un sondage aléatoire sans remise devrait être efficace. 
+
+
+
+```{r}
+#load data
+data = load(file = "c:/users/lucien/desktop/sondage/Poivron_legoland.rda")
+#ordonne la db en fonction de la province et enseigne
+Poivron_Legoland = Poivron_Legoland[order(Poivron_Legoland$Province, Poivron_Legoland$Enseigne),]
+
+set.seed(5)
+#plan aléatoire sans remise
+N = length(Poivron_Legoland$Province) #total pop
+n = 19250
+srs = srswor(n, N)
+dataSrswor = Poivron_Legoland[srs == 1,]
+
+#Fonction de cout d'un échantillon : 
+cost = function(tab){
+  cost = 0
+  levels = levels(Poivron_Legoland$Enseigne)
+  for(i in 1:length(tab[,1])){
+    if(tab[i,2] == levels[1]){
+      cost = cost + 1 
+    }else if(tab[i,2] == levels[2]){
+      cost = cost + 1.2
+    }else{
+      cost = cost + 1.5
+    }
+  }  
+  return(cost*1.05)
+}
+
+```
+
+Premièrement nous allons constituer notre échantillon. Celui-ci sera fait grâce à la fonction $srswor$ afin de prendre 19250 échantillons. 
+
+Nous allons ensuite vérifier si celui-ci ne dépasse pas la limite de coûts, auquel cas nous devrions revoir ce chiffre à la baisse. 
+
+```{r}
+cost(dataSrswor) #24913$
+```
+
+Nous sommes juste en dessous de la limite, nous pouvons donc conserver cet échantillon pour l'analyse. 
+
+Nous allons maintenant vérifier si cet échantillon représente bien les trois enseignes et les trois provinces. Pour ce faire nous allons afficher calculer les tables de proportions des provinces ainsi que des enseignes de la population (dont nous connaissons les totaux à priori) et les comparer avec les proportions de notre échantillon. Nous pourrons ensuite afficher la différence de ces proportions entre l'échantillon et l'information à priori pour voir si nous en sommes proche. 
+
+
+```{r}
+#calcul des proportions dans les variables Province et Enseigne de la db
+propP = prop.table(table(Poivron_Legoland$Province))
+propE = prop.table(table(Poivron_Legoland$Enseigne))
+
+#calcul dans notre échantillon 
+propPe = prop.table(table(dataSrswor$Province))
+propEe = prop.table(table(dataSrswor$Enseigne))
+
+#affichage
+pander(propPe - propP)
+pander(propEe - propE)
+
+```
+
+En effet il semble que les proportions soient bien respectées. Nous pouvons également afficher la table croisée de notre échantillon : 
+
+```{r}
+pander(table(dataSrswor$Province, dataSrswor$Enseigne))
+```
+
+L'échantillon étant maintenant constitué et validé nous pouvons maintenant répondre à la question en faisant la somme des achats des différents types de poivrons de l'échantillon : 
+
+```{r}
+#Nous pouvons maintenant nous intéresser à la question puisque l'échantillon est constitué. 
+poivrons = 0
+for(i in 4:6){
+  poivrons[i-3] = sum(dataSrswor[,i])
+}
+poivrons = t(poivrons)
+poivrons = as.data.frame(poivrons)
+colnames(poivrons) = c("vert", "jaune", "rouge")
+pander(poivrons)
+```
+
+##Discussion 
+
+Comme nous le voyons très bien ici, les poivrons rouges sont largement majoritaires avec plus de 333.000 poivrons consommés. Les deux autres types de poivrons sont assez similaire dans leurs ventes avec 163636 et 161140 en faveur des poivrons jaunes. Cette information pourrait être intéressante pour la détermination des prix des poivrons, car elle nous informe sur la demande de ceux-ci. Cependant avant de prendre une conclusion trop hâtive nous allons aller plus loin en regardant si cette consommation est homogène entre les différentes provinces.
+
+#Est-ce que la consommation de poivron est homogène au sein des trois provinces de Legoland ? 
+
+
+
