@@ -3,6 +3,9 @@ title: "LSTAT2200 - Projet Legoland"
 author: "Lucien Ledune"
 date: '`r format(Sys.time(), "%B %d, %Y,%H:%M")`'
 output:
+  pdf_document: # options pour sorties pdf
+    toc: yes
+    toc_depth: '3'
   html_document: # options pour sortie HTML
     code_folding: hide #  Cache le code  
     collapsed: yes # Cr?e un document unique 
@@ -15,9 +18,6 @@ output:
     toc: yes # Table des matiere ?
     toc_depth: 3  # Profondeur table des mati?re
     toc_float: yes # table des mati?re flottante
-  pdf_document: # options pour sorties pdf
-    toc: yes
-    toc_depth: '3'
   word_document: default
 ---
 
@@ -169,6 +169,8 @@ Comme nous le voyons très bien ici, les poivrons rouges sont largement majoritai
 
 #Est-ce que la consommation de poivron est homogène au sein des trois provinces de Legoland ? 
 
+##Échantillonage et calculs
+
 Nous allons maintenant nous intéresser à la deuxième question principale de ce projet, et tenter de déterminer si la consommation de poivrons est homogène au sein des trois provinces de Legoland. 
 
 Pour cette question nous pouvons changer notre plan de sondage. 
@@ -256,6 +258,8 @@ Le tableau ci-dessus mets en évidence plusieurs choses intéressantes. Premièreme
 Cette analyse nous permet donc très clairement de distinguer une hétérogénéité de la consommation des types de poivrons en fonction des provinces. 
 
 #Le chiffre d'affaire diffère-t-il au sein des chaines de supermarchés ? 
+
+##Échantillonage et calculs
 
 Pour répondre à cette question il faut rappeler que le coût au kg des différents types de poivrons sont actuellement identiques, nous pouvons donc nous concentrer sur la quantité de poivrons vendus au sein de chaque enseigne. Ici encore nous connaissons les totaux de la population, nous pourrons donc nous servir de ces totaux pour obtenir un échantillon de la même proportion. 
 
