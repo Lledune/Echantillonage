@@ -212,6 +212,8 @@ Nous voyons bien que les différentes proportions sont respectées. Regardons main
 ```{r}
 pander(table(echant2[[2]]$Enseigne), caption = "Compte des enseignes de l'échantillon")
 ```
+
+
 Encore une fois il est clair que les trois enseignes sont bien représentées dans l'échantillon, nous pouvons donc le valider et répondre à la question. 
 
 Pour ce faire nous allons regarder les consommation des différents poivrons grâce à une équation "logique" pour bien séparer les provinces. 
