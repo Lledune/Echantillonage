@@ -3,9 +3,6 @@ title: "LSTAT2200 - Projet Legoland"
 author: "Lucien Ledune"
 date: '`r format(Sys.time(), "%B %d, %Y,%H:%M")`'
 output:
-  pdf_document: # options pour sorties pdf
-    toc: yes
-    toc_depth: '3'
   html_document: # options pour sortie HTML
     code_folding: hide #  Cache le code  
     collapsed: yes # Cr?e un document unique 
@@ -18,6 +15,9 @@ output:
     toc: yes # Table des matiere ?
     toc_depth: 3  # Profondeur table des mati?re
     toc_float: yes # table des mati?re flottante
+  pdf_document: # options pour sorties pdf
+    toc: yes
+    toc_depth: '3'
   word_document: default
 ---
 
