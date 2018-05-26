@@ -259,6 +259,96 @@ Pour répondre à cette question il faut rappeler que le coût au kg des différents
 
 Nous devons ici encore faire bien attention à prendre un échantillon aussi grand que possible tout en restant dans la limite, car comme les quantités achetées varient beaucup d'une transaction à l'autre nous devons tenter de nous rapprocher un maximum de la réalité en prenant autant de lignes que possible. 
 
+Notre analyse ici va être très similaire à la précédente, à la différence près que ce n'est pas aux provinces que nous nous intéressons mais aux enseignes. Nous allons donc encore une fois utiliser les proportions des enseignes de la population (connues) pour répliquer celles-ci dans notre échantillon. 
+
+Pour ce faire nous allons encore utiliser un échantillon à deux degrès : Premièrement une sélection des groupes, ensuite un échantillonage simple sans remise au sein de ces groupes en suivant les proportions de la population pour que les résultats collent un maximum à la réalité. 
+
+```{r}
+prop = prop.table(table(Poivron_Legoland$Enseigne))
+
+k = 19275
+
+set.seed(5)
+#Getting proportions
+Sample <- mstage(Poivron_Legoland, stage=c("cluster",""), varnames=list("Enseigne"), size=list(3,k*prop), method=c("srswor","srswor"))
+echant3 = getdata(Poivron_Legoland, Sample)
+
+cost(echant2[[2]]) #24951$
+```
+
+Encore une fois le coût de l'échantillon est de 24951$, nous respectons donc bien le budget. 
+
+Regardons maintenant si les proportions sont bien respectées : 
+
+```{r}
+pander(prop.table(table(Poivron_Legoland$Enseigne)), caption = "Proportions de la population (données)")
+pander(prop.table(table(echant3[[2]]$Enseigne)), caption = "Proportions de l'échantillon")
+pander(table(echant3[[2]]$Enseigne), caption = "Compte des différentes enseignes dans l'échantillon")
+
+```
+
+En effet les proportions sont parfaitement respectées, comme attendu. 
+
+
+Nous allons maintenant nous intéresser aux autres contraintes. Les provinces sont-elles bien représentées ? 
+
+```{r}
+echant3E = echant3[[2]]
+pander(table(echant3E$Province), caption = "Compte des provinces dans l'échantillon")
+```
+
+Cela semble en effet être le cas. Il ne nous reste plus maintenant qu'à vérifier que chaque enseigne est bien représentée dans chaque province : 
+
+```{r}
+tab = table(echant3E$Province, echant3E$Enseigne)
+tab = cbind(tab, Total = rowSums(tab))
+tab = rbind(tab, Total = colSums(tab))
+pander(tab, caption = "Tableau croisé de l'échantillon")
+```
+
+Il est clair que les enseignes sont bien représentées au vue des résultats de notre tableau croisé. 
+
+L'échantillon étant maintenant validé nous allons répondre à la question qui est de déterminer si le chiffre d'affaire est le même parmis les trois enseignes. 
+
+Puisque le prix au kg est identique pour chaque poivron et ce dans chaque enseigne, nous pouvons considérer qu'1kg coûte 1$, ce qui simplifiera grandement les calculs car nous ne devrons pas nous soucier du prix dans ceux-ci. 
+La surface vendant le plus de kg de poivrons sera donc celle qui réalisera le meilleur chiffre d'affaire. 
+
+Grâce à cette simplification, nous pouvons donc suivre exactement la même méthodologie que dans la question précédente, en étudiant les enseignes au lieu des provinces. 
+
+Voici le tableau résultant de cette analyse : 
+
+```{r}
+samp = echant3[[2]]
+
+dfcons = as.data.frame(matrix(ncol = 4, nrow = 4))
+colnames(dfcons) = c("Vert", "Jaune", "Rouge", "Somme")
+rownames(dfcons) = c("Grancub", "P'ti rond", "Toupla", "Somme")
+
+#Get sums 
+for(i in 4:6){
+  dfcons[1, i-3] = sum(samp[samp$Enseigne == "Grancub", i])
+  dfcons[2, i-3] = sum(samp[samp$Enseigne == "P'ti rond", i])
+  dfcons[3, i-3] = sum(samp[samp$Enseigne == "Toupla", i])
+}
+for(i in 1:3){
+  dfcons[i, 4] = sum(dfcons[i, ], na.rm = T)
+  dfcons[4, i] = sum(dfcons[, i], na.rm = T)
+}
+dfcons[4, 4] = sum(sum(dfcons[,4], na.rm = T), sum(dfcons[4,], na.rm = T))
+
+pander(dfcons, caption = "Consommation de poivrons par enseigne")
+```
+
+La première chose que nous notons est la similarité entre cette analyse et la précédente ! Les conclusions semblent très similaires, voici ce que nous pouvons noter : 
+
+* Les trois enseignes semblent avoir un chiffre d'affaire relativement similaire, avec 215025, 219538 et 225065. Cela dit l'enseigne toupla semble tout de même en vendre légèrement plus que les autres, la différence étant de 10040 kg avec Grancub. 
+* Le poivron rouge est celui qui rapporte le plus aux trois enseignes. 
+* Grancub vends plus de poivrons jaunes que de poivrons verts.
+* P'ti rond vend plus ou moins autant de poivrons jaunes que de poivrons verts.
+* Toupla vend plus de poivrons verts que de poivrons jaunes. 
+
+
+
 
 
 
