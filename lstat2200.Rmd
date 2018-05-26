@@ -1,5 +1,5 @@
 ---
-title: "LSTAT2200"
+title: "LSTAT2200 - Projet Legoland"
 author: "Lucien Ledune"
 date: '`r format(Sys.time(), "%B %d, %Y,%H:%M")`'
 output:
@@ -149,7 +149,7 @@ En effet il semble que les proportions soient bien respectées. Nous pouvons égal
 pander(table(dataSrswor$Province, dataSrswor$Enseigne), caption = "Table croisée de l'échantillon")
 ```
 
-L'échantillon étant maintenant constitué et validé nous pouvons maintenant répondre à la question en faisant la somme des achats des différents types de poivrons de l'échantillon : 
+L'échantillon étant maintenant constitué et validé nous pouvons maintenant répondre à la question en faisant la somme des achats des différents types de poivrons de l'échantillon (Les statistiques descriptives se trouvent en annexe) : 
 
 ```{r}
 #Nous pouvons maintenant nous intéresser à la question puisque l'échantillon est constitué. 
@@ -218,6 +218,8 @@ Encore une fois il est clair que les trois enseignes sont bien représentées dans
 
 Pour ce faire nous allons regarder les consommation des différents poivrons grâce à une équation "logique" pour bien séparer les provinces. 
 
+Les statistiques descriptives se trouvent en annexe. 
+
 
 ```{r}
 samp = echant2[[2]]
@@ -263,20 +265,22 @@ Notre analyse ici va être très similaire à la précédente, à la différence près q
 
 Pour ce faire nous allons encore utiliser un échantillon à deux degrès : Premièrement une sélection des groupes, ensuite un échantillonage simple sans remise au sein de ces groupes en suivant les proportions de la population pour que les résultats collent un maximum à la réalité. 
 
+Dans cette analyse lorsque nous parlerons de chiffre d'affaire nous parlerons des ventes de l'échantillon uniquement, même s'il serait facile d'interpoller les valeurs pour coller au chiffre d'affaire "réel" de l'entreprise, ceci n'a pas vraiment de sens ici puisque l'objet de l'étude est la **différence** de chiffre d'affaire entre les enseignes. 
+
 ```{r}
-prop = prop.table(table(Poivron_Legoland$Enseigne))
+prop2 = prop.table(table(Poivron_Legoland$Enseigne))
 
-k = 19275
+k2 = 19300
 
-set.seed(5)
+set.seed(500)
 #Getting proportions
-Sample <- mstage(Poivron_Legoland, stage=c("cluster",""), varnames=list("Enseigne"), size=list(3,k*prop), method=c("srswor","srswor"))
-echant3 = getdata(Poivron_Legoland, Sample)
+Sample2 <- mstage(Poivron_Legoland, stage=c("cluster",""), varnames=list("Enseigne"), size=list(3,k2*prop2), method=c("srswor","srswor"))
+echant3 = getdata(Poivron_Legoland, Sample2)
 
-cost(echant2[[2]]) #24951$
+cost(echant3[[2]]) #24984$
 ```
 
-Encore une fois le coût de l'échantillon est de 24951$, nous respectons donc bien le budget. 
+Encore une fois le coût de l'échantillon est de 24984$, nous respectons donc bien le budget. 
 
 Regardons maintenant si les proportions sont bien respectées : 
 
@@ -310,6 +314,9 @@ Il est clair que les enseignes sont bien représentées au vue des résultats de no
 
 L'échantillon étant maintenant validé nous allons répondre à la question qui est de déterminer si le chiffre d'affaire est le même parmis les trois enseignes. 
 
+Les statistiques descriptives se trouvent en annexe.  
+
+
 Puisque le prix au kg est identique pour chaque poivron et ce dans chaque enseigne, nous pouvons considérer qu'1kg coûte 1$, ce qui simplifiera grandement les calculs car nous ne devrons pas nous soucier du prix dans ceux-ci. 
 La surface vendant le plus de kg de poivrons sera donc celle qui réalisera le meilleur chiffre d'affaire. 
 
@@ -339,17 +346,100 @@ dfcons[4, 4] = sum(sum(dfcons[,4], na.rm = T), sum(dfcons[4,], na.rm = T))
 pander(dfcons, caption = "Consommation de poivrons par enseigne")
 ```
 
+##Discussion
+
 La première chose que nous notons est la similarité entre cette analyse et la précédente ! Les conclusions semblent très similaires, voici ce que nous pouvons noter : 
 
-* Les trois enseignes semblent avoir un chiffre d'affaire relativement similaire, avec 215025, 219538 et 225065. Cela dit l'enseigne toupla semble tout de même en vendre légèrement plus que les autres, la différence étant de 10040 kg avec Grancub. 
+* Les trois enseignes semblent avoir un chiffre d'affaire relativement similaire, avec 214173, 218720 et 227161. Cela dit l'enseigne toupla semble tout de même en vendre légèrement plus que les autres, la différence étant d'environ 13000 kg avec Grancub. 
 * Le poivron rouge est celui qui rapporte le plus aux trois enseignes. 
 * Grancub vends plus de poivrons jaunes que de poivrons verts.
 * P'ti rond vend plus ou moins autant de poivrons jaunes que de poivrons verts.
 * Toupla vend plus de poivrons verts que de poivrons jaunes. 
 
+Encore une fois nous constatons une grande hétérogénéité dans les ventes lorsque l'on prend en compte les types de poivrons vendus par les enseignes. 
+
+Cependant en observant les totaux on voit que la différence de chiffre d'affaire même si elle est existante n'est pas si énorme. L'ordre décroissant est celui-ci : Toupla > P'ti rond > Grancub.
+
+#Discussion : Conseils au gouvernement de Playmoland
+
+Cette discussion va être divisée en deux parties, les conseils concernant le pays et les conseils concernant les enseignes. 
+
+##Pays 
+
+Notre première analyse nous apporte des renseignements importants quant à la demande des différents poivrons du pays. Il apparait clairement que la demande de poivrons rouges est bien supérieure à la demande des autres types de poivrons, le conseil assez évident à donner ici est donc d'augmenter le prix du poivron rouge, car les habitants de Legoland seront prêts à payer plus pour continuer à profiter de leur aliment préféré. 
+
+Si il est possible de changer les prix d'exportation en fonction de la province, nous pouvons aussi en suivant la même logique augmenter les prix des poivrons verts dans le nord et le prix des poivrons jaunes dans le sud. Cependant cela reste hypothétique car il est peut probable qu'une telle discrimination soit applicable en réalité. 
+
+##Enseignes 
+
+S'il nous est possible de différencier les prix des enseignes en leur vendant directement les poivrons, alors il serait utile de : 
+
+* Augmenter le prix des poivrons jaunes pour Grancub
+* Augmenter le prix des poivrons verts pour Toupla
+* Encore une fois, augmenter le prix des poivrons rouges de manière générale. 
+
+#Quelle est la proportion de transaction bancaires ? 
+
+Pour répondre à cette question nous pouvons reprendre notre deuxième échantillon, qui était bien représentatif des provinces mais aussi des enseignes. De plus il est proportionné correctement par rapport aux proportions des provinces, ce qui nous permettra d'avoir une proportion **totale** proche de la réalité. 
+
+Nous allons regarder quelle est la proportion de transaction bancaires dans celui-ci. 
+
+```{r}
+samp = echant2[[2]]
+
+dfP = as.data.frame(matrix(ncol = 3, nrow = 4))
+colnames(dfP) = c("Espèce", "Paiement électronique", "Somme")
+rownames(dfP) = c("Nord", "Centre", "Sud", "Somme")
+
+#Get sums 
+dfP[1, 1] = sum( Reduce("&", list(samp$Province == "Nord", samp$Paiement == "Espèce")) )
+dfP[1, 2] = sum( Reduce("&", list(samp$Province == "Nord", samp$Paiement == "Paiement électronique")) )
+
+dfP[2, 1] = sum( Reduce("&", list(samp$Province == "Centre", samp$Paiement == "Espèce")) )
+dfP[2, 2] = sum( Reduce("&", list(samp$Province == "Centre", samp$Paiement == "Paiement électronique")) )
+
+dfP[3, 1] = sum( Reduce("&", list(samp$Province == "Sud", samp$Paiement == "Espèce")) )
+dfP[3, 2] = sum( Reduce("&", list(samp$Province == "Sud", samp$Paiement == "Paiement électronique")) )
+
+for(i in 1:2){
+  dfP[4, i] = sum(dfP[ ,i], na.rm = T)
+}
+for(i in 1:3){
+  dfP[i, 3] = sum(dfP[i, ], na.rm = T)
+}
+dfP[4,3] = sum(dfP[,3], na.rm = T)
 
 
+dfP = cbind(dfP, Proportion_province = dfP$`Paiement électronique`/(dfP$`Espèce` + dfP$`Paiement électronique`))
 
+pander(dfP, caption = "Tableau des types de paiement")
+
+```
+
+##Discussion 
+
+Nous voyons que les pourcentages théoriques donnés par Legoland sont confirmés (70%, 60% et 40%). Cependant la proportion quand au total des transactions n'atteint que 57%. 
+
+Le seuil de rentabilité n'étant pas atteint il ne faut pas rajouter les terminaux dans le contrat. Cependant ici aussi, si un contrat peu être négocié pour une seule province, alors celle du Nord pourrait être rentable car la proportion dépasse bel et bien le seuil de rentabilité fixé. 
+
+#Conclusion 
+
+Dans ce travail, nous avons formé différents échantillons dans le but de répondre à différentes questions posées par le gouvernement de Playmoland. 
+
+Premièrement, nous avons montré que les poivrons rouges étaient les plus consommés, ce qui nous a permis de fournir des recommendations quant aux nouveaux prix à fixer. 
+
+Pour aller plus loin, nous avons examiné ce que devenait la consommation de ces poivrons au sein des différentes provinces et avons montré que celles-ci différaient assez bien. Dans la même optique nous avons analysé les ventes des différentes enseignes et avons trouvé des conclusions similaires. 
+
+Enfin, nous avons montré que la négociation des terminaux dans le contrat n'était pas rentable car elle n'atteignait pas le seuil nécessaire à sa rentabilité. 
+
+
+#Annexes
+
+```{r}
+pander(summary(dataSrswor[,1:7]), caption = "Statistiques descriptives du premier échantillon")
+pander(summary(samp[,1:7]), caption = "Statistiques descriptives du deuxième échantillon")
+pander(summary(echant3E[,1:7]), caption = "Statistiques descriptives du troisième échantillon")
+```
 
 
 
