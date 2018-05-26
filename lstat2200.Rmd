@@ -58,7 +58,7 @@ Vert, jaune, rouge : La quantité de poivrons de chaque type achetée.
 
 N_Personnes : Nombre de personnes au sein du ménage. 
 
-Il faut garder à l'esprit que même si nous avons la base de donnée pour ce projet, nous ne pouvons pas nous en servir directement puisque le but est d'échantilloner. Nous disposons cependant de certaines informations comme les effectifs des provinces et des enseignes. 
+Il faut garder à l'esprit que même si nous avons la base de donnée pour ce projet, nous ne pouvons pas nous en servir directement puisque le but est d'échantilloner. Nous disposons cependant de certaines informations comme les effectifs des provinces et des enseignes. (Voir mail de Vincent Bremhorst).
 
 ##Contraintes 
 
@@ -138,15 +138,15 @@ propPe = prop.table(table(dataSrswor$Province))
 propEe = prop.table(table(dataSrswor$Enseigne))
 
 #affichage
-pander(propPe - propP)
-pander(propEe - propE)
+pander(propPe - propP, caption = "Différence de proportion dans les provinces")
+pander(propEe - propE, caption = "Différence de proportion dans les enseignes")
 
 ```
 
 En effet il semble que les proportions soient bien respectées. Nous pouvons également afficher la table croisée de notre échantillon : 
 
 ```{r}
-pander(table(dataSrswor$Province, dataSrswor$Enseigne))
+pander(table(dataSrswor$Province, dataSrswor$Enseigne), caption = "Table croisée de l'échantillon")
 ```
 
 L'échantillon étant maintenant constitué et validé nous pouvons maintenant répondre à la question en faisant la somme des achats des différents types de poivrons de l'échantillon : 
@@ -160,7 +160,7 @@ for(i in 4:6){
 poivrons = t(poivrons)
 poivrons = as.data.frame(poivrons)
 colnames(poivrons) = c("vert", "jaune", "rouge")
-pander(poivrons)
+pander(poivrons, caption = "Consommation de poivron de l'échantillon")
 ```
 
 ##Discussion 
@@ -168,6 +168,99 @@ pander(poivrons)
 Comme nous le voyons très bien ici, les poivrons rouges sont largement majoritaires avec plus de 333.000 poivrons consommés. Les deux autres types de poivrons sont assez similaire dans leurs ventes avec 163636 et 161140 en faveur des poivrons jaunes. Cette information pourrait être intéressante pour la détermination des prix des poivrons, car elle nous informe sur la demande de ceux-ci. Cependant avant de prendre une conclusion trop hâtive nous allons aller plus loin en regardant si cette consommation est homogène entre les différentes provinces.
 
 #Est-ce que la consommation de poivron est homogène au sein des trois provinces de Legoland ? 
+
+Nous allons maintenant nous intéresser à la deuxième question principale de ce projet, et tenter de déterminer si la consommation de poivrons est homogène au sein des trois provinces de Legoland. 
+
+Pour cette question nous pouvons changer notre plan de sondage. 
+
+Nous devons ici bien nous assurer que les trois provinces sont bien représentées car nous voulons avant tout analyser l'homogénéité dans la consommation de poivrons au sein de celles-ci. 
+
+Pour ce faire nous allons donc utiliser un échantillonage aléatoire à deux degrés afin de bien cibler notre étude. Comme nous disposons des totaux des différentes provinces nous pourrons nous en servir afin de quantifier les échantillons de chaque province que nous allons récupérer. Cela va nous permettre de sélectionner toutes les provinces et par la suite de choisir le nombre d'échantillon à récupérer dans chaque province. 
+
+Nous allons pour le choix de ce nombre nous servir des proportions, que nous allons ensuite multiplier par une constakte $k$ permettant de se rapprocher des 25000$ de contrainte sans les dépasser afin de garantir la qualité de l'échantillon. 
+
+
+
+```{r}
+prop = prop.table(table(Poivron_Legoland$Province))
+#Fix order for sample (care for seed) 
+temp = prop[1]
+prop[1] = prop[2]
+prop[2] = temp
+
+k = 19250
+
+set.seed(5)
+#Getting proportions
+Sample <- mstage(Poivron_Legoland, stage=c("cluster",""), varnames=list("Province"), size=list(3,k*prop), method=c("srswor","srswor"))
+echant2 = getdata(Poivron_Legoland, Sample)
+
+cost(echant2[[2]]) #24951$
+
+```
+
+En effet nous restons bien dans les coûts avec 24951$. Nous allons maintenant regarder les provinces et les enseignes représentées dans notre échantillon. 
+
+```{r}
+pander(prop.table(table(Poivron_Legoland$Province)), caption = "Proportions de la population (données)")
+pander(prop.table(table(echant2[[2]]$Province)), caption = "Proportions de l'échantillon")
+pander(table(echant2[[2]]$Province), caption = "Compte des différentes provinces dans l'échantillon")
+```
+
+Nous voyons bien que les différentes proportions sont respectées. Regardons maintenant si les enseignes sont bien représentées. 
+
+```{r}
+pander(table(echant2[[2]]$Enseigne), caption = "Compte des enseignes de l'échantillon")
+```
+Encore une fois il est clair que les trois enseignes sont bien représentées dans l'échantillon, nous pouvons donc le valider et répondre à la question. 
+
+Pour ce faire nous allons regarder les consommation des différents poivrons grâce à une équation "logique" pour bien séparer les provinces. 
+
+
+```{r}
+samp = echant2[[2]]
+
+dfcons = as.data.frame(matrix(ncol = 4, nrow = 4))
+colnames(dfcons) = c("Vert", "Jaune", "Rouge", "Somme")
+rownames(dfcons) = c("Nord", "Centre", "Sud", "Somme")
+
+#Get sums 
+for(i in 4:6){
+  dfcons[1, i-3] = sum(samp[samp$Province == "Nord", i])
+  dfcons[2, i-3] = sum(samp[samp$Province == "Centre", i])
+  dfcons[3, i-3] = sum(samp[samp$Province == "Sud", i])
+}
+for(i in 1:3){
+  dfcons[i, 4] = sum(dfcons[i, ], na.rm = T)
+  dfcons[4, i] = sum(dfcons[, i], na.rm = T)
+}
+dfcons[4, 4] = sum(sum(dfcons[,4], na.rm = T), sum(dfcons[4,], na.rm = T))
+
+pander(dfcons, caption = "Consommation de poivrons par région")
+
+```
+
+##Discussion 
+
+Le tableau ci-dessus mets en évidence plusieurs choses intéressantes. Premièrement, la consommation **totale** de poivrons au sein des différentes provinces semble en effet assez semblable avec 218713, 219581 et 220633. Cependant attention car si l'on observe la consommation par types de poivrons, celle-ci diffère énormément d'une province à l'autre. Ainsi : 
+
+* Les trois provinces consomment une majorité de poivrons rouges. 
+* La province du nord consomme plus de poivrons verts que les autres provinces mais moins de poivrons jaunes. 
+* La province de centre consomme des poivrons verts et jaunes dans une quantité assez similaire. 
+* La province du sud consomme plus de poivrons jaunes que les autres provinces mais moins de poivrons verts
+
+Cette analyse nous permet donc très clairement de distinguer une hétérogénéité de la consommation des types de poivrons en fonction des provinces. 
+
+#Le chiffre d'affaire diffère-t-il au sein des chaines de supermarchés ? 
+
+Pour répondre à cette question il faut rappeler que le coût au kg des différents types de poivrons sont actuellement identiques, nous pouvons donc nous concentrer sur la quantité de poivrons vendus au sein de chaque enseigne. Ici encore nous connaissons les totaux de la population, nous pourrons donc nous servir de ces totaux pour obtenir un échantillon de la même proportion. 
+
+Nous devons ici encore faire bien attention à prendre un échantillon aussi grand que possible tout en restant dans la limite, car comme les quantités achetées varient beaucup d'une transaction à l'autre nous devons tenter de nous rapprocher un maximum de la réalité en prenant autant de lignes que possible. 
+
+
+
+
+
 
 
 
